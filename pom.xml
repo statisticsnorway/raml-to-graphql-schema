@@ -19,7 +19,6 @@
         <raml-parser-2.version>1.0.28</raml-parser-2.version>
         <snakeyaml.version>1.23</snakeyaml.version>
         <jackson.version>2.9.8</jackson.version>
-        <json-path.version>2.4.0</json-path.version>
         <logback.version>1.2.3</logback.version>
         <testng.version>6.14.3</testng.version>
     </properties>
@@ -48,9 +47,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/statisticsnorway/raml-to-jsonschema.git</connection>
-        <developerConnection>scm:git:git@github.com:statisticsnorway/raml-to-jsonschema.git</developerConnection>
-        <url>https://github.com/statisticsnorway/raml-to-jsonschema/tree/master</url>
+        <connection>scm:git:git://github.com/statisticsnorway/raml-to-graphql-schema.git</connection>
+        <developerConnection>scm:git:git@github.com:statisticsnorway/raml-to-graphql-schema.git</developerConnection>
+        <url>https://github.com/statisticsnorway/raml-to-graphql-schema/tree/master</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -99,12 +98,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-jsonSchema</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.raml</groupId>
             <artifactId>raml-parser-2</artifactId>
             <version>${raml-parser-2.version}</version>
@@ -114,12 +107,6 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyaml.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>${json-path.version}</version>
         </dependency>
 
         <dependency>
@@ -231,7 +218,7 @@
                 <configuration>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>no.ssb.raml.RamltoJsonSchemaConverter</mainClass>
+                            <mainClass>no.ssb.raml.graphql.RamlToGraphQLSchemaConverter</mainClass>
                         </transformer>
                     </transformers>
                 </configuration>

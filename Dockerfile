@@ -1,8 +1,8 @@
 FROM statisticsnorway/alpine-jdk11-buildtools:latest as build
 
 WORKDIR /
-RUN git clone https://github.com/statisticsnorway/raml-to-jsonschema.git
-WORKDIR /raml-to-jsonschema
+RUN git clone https://github.com/statisticsnorway/raml-to-graphql-schema.git
+WORKDIR /raml-to-graphql-schema
 #RUN mvn -B verify dependency:go-offline
 #RUN mvn -B -o dependency:copy-dependencies
 RUN mvn -B clean install
@@ -19,7 +19,7 @@ FROM alpine:latest
 # Resources from build image
 #
 COPY --from=build /linked /opt/jdk/
-COPY --from=build /raml-to-jsonschema/target/raml-to-jsonschema-*.jar /opt/raml-to-jsonschema/bin/
+COPY --from=build /raml-to-graphql-schema/target/raml-to-graphql-schema-*.jar /opt/raml-to-graphql-schema/bin/
 
 ENV PATH=/opt/jdk/bin:$PATH
 
@@ -29,4 +29,4 @@ VOLUME ["/raml-project"]
 
 WORKDIR /raml-project
 
-CMD ["java", "-cp", "/opt/raml-to-jsonschema/bin/*", "no.ssb.raml.RamltoJsonSchemaConverter", "jsonschemas/", "schemas/"]
+CMD ["java", "-cp", "/opt/raml-to-graphql-schema/bin/*", "no.ssb.raml.graphql.RamlToGraphQLSchemaConverter", "graphqlschemas/", "schemas/"]

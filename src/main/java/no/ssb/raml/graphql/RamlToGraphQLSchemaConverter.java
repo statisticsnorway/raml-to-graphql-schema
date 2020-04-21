@@ -11,7 +11,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaPrinter;
-import no.ssb.raml.utils.DirectoryUtils;
 import org.raml.v2.api.RamlModelBuilder;
 import org.raml.v2.api.RamlModelResult;
 import org.raml.v2.api.model.v10.api.Library;
@@ -24,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -35,32 +35,67 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static no.ssb.raml.utils.DirectoryUtils.createFolder;
 import static no.ssb.raml.utils.DirectoryUtils.resolveRelativeFilePath;
 
 public class RamlToGraphQLSchemaConverter {
 
     private static String printUsage() {
-        return String.format("Usage: java raml-to-jsonschema.jar OUTFOLDER FILE|FOLDER [FILE|FOLDER]...%n"
-                + "Convert all raml FILE(s) and all raml files in FOLDER(s) to JSON Schema and put in OUTFOLDER" +
+        return String.format("Usage: java raml-to-graphql-schema.jar OUTFOLDER FILE|FOLDER [FILE|FOLDER]...%n"
+                + "Convert all raml FILE(s) and all raml files in FOLDER(s) to GraphQL Schema and put in OUTFOLDER" +
                 ".%n%n");
     }
 
     public static void main(String[] args) throws IOException {
-        String output = convertToGraphQLSchema(args);
+        String output = convertSchemas(args);
         System.out.println(output);
     }
 
-    public static String convertToGraphQLSchema(String[] args) throws IOException {
+    static String convertSchemas(String[] args) throws IOException {
 
-        if(args.length < 2){
+        //check arguments are passed while running jar
+        if (args.length < 2) {
             return printUsage();
         }
 
-        Path root = Paths.get("/Users/rupinderkaur/Projects/ssb/gsim-raml-schema/schemas/");
+        Path outputFolder = resolveRelativeFilePath(args[0]);
+
+        //create output folder to store converted GraphQL schema
+        Path outputFolderPath = createFolder(outputFolder);
+
+        for (int i = 1; i < args.length; i++) {
+            String arg = args[i];
+            Path path = Paths.get(arg);
+
+            if (!Files.exists(path)) {
+                System.err.format("Parameter '%s' does not exist on the file-system.\n", arg);
+                continue;
+            }
+            if (!Files.isReadable(path)) {
+                System.err.format("File or folder '%s' cannot be read.\n", arg);
+                continue;
+            }
+            if (!(Files.isRegularFile(path) || Files.isDirectory(path))) {
+                System.err.format("Parameter '%s' is not a file or directory.\n", arg);
+                continue;
+            }
+            try {
+                convertToGraphQLSchema(outputFolderPath, path);
+            } catch (RuntimeException e) {
+                System.err.println("FILE: " + arg);
+                throw e;
+            }
+        }
+
+        return "";
+    }
+
+    public static String convertToGraphQLSchema(Path outputFolder, Path root) throws IOException {
+
         List<TypeDeclaration> models = new ArrayList<>();
         Files.walkFileTree(root, new FileVisitor<Path>() {
             @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                 return FileVisitResult.CONTINUE;
             }
 
@@ -80,12 +115,12 @@ public class RamlToGraphQLSchemaConverter {
             }
 
             @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            public FileVisitResult visitFileFailed(Path file, IOException exc) {
                 return FileVisitResult.TERMINATE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
                 return FileVisitResult.CONTINUE;
             }
         });
@@ -119,9 +154,7 @@ public class RamlToGraphQLSchemaConverter {
                 }
             }
         }
-        models.removeIf(typeDeclaration -> {
-            return interfaces.contains(typeDeclaration.name());
-        });
+        models.removeIf(typeDeclaration -> interfaces.contains(typeDeclaration.name()));
 
         for (TypeDeclaration typeDeclaration : models) {
             GraphQLOutputType type = visitor.visit(typeDeclaration);
@@ -147,14 +180,10 @@ public class RamlToGraphQLSchemaConverter {
         schema.query(query);
         System.out.println(printer.print(schema.build()));
 
-        DirectoryUtils.createFolder(resolveRelativeFilePath("graphQLSchemas"));
-
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(Paths.get("graphQLSchemas/schema.graphql").toFile()), "utf-8"))) {
+                new FileOutputStream(outputFolder.resolve("schema.graphql").toFile()), StandardCharsets.UTF_8))) {
             writer.write(printer.print(schema.build()));
         }
         return printer.print(schema.build());
     }
-
-
 }

@@ -11,11 +11,6 @@ types:
     type: IdentifiableArtefact.IdentifiableArtefact
 
     properties:
-      informationProviders?:
-        type: string[]
-        displayName: Information providers
-        (Link.types): [InformationProvider]
-
       regulation:
         type: string
         description: Legal or lawful basis to collect data
@@ -56,11 +51,6 @@ types:
         type: MultilingualText.MultilingualText[]
         displayName: Information source
         description: External source
-
-      exchangeChannels?:
-        type: string[]
-        displayName: Exchange channels
-        (Link.types): [ExchangeChannel]
 
       frequency:
         type: string
