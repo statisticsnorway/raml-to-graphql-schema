@@ -31,6 +31,17 @@ public class RamltoGraphQLSchemaConverterTest {
         assertTrue(Files.exists(Paths.get(outputFolder, "schema.graphql")));
     }
 
+    @Test
+    public void thatMainConvertsEmbeddedSchemas() throws IOException {
+        String outputFolder = "target/embedded-schemas";
+        deleteFolder(Paths.get(outputFolder));
+
+        String result = RamlToGraphQLSchemaConverter.convertSchemas(new String[]{outputFolder, "src/test/resources/raml/embeddedobject/schemas"});
+
+        assertEquals(result, "");
+        assertTrue(Files.exists(Paths.get(outputFolder, "schema.graphql")));
+    }
+
     private void deleteFolder(Path pathToBeDeleted) throws IOException {
         if (Files.exists(pathToBeDeleted)) {
             Files.walk(pathToBeDeleted)
